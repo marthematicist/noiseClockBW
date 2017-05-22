@@ -1,28 +1,36 @@
 float centerH = 0;
 float widthH = 0.7;
 
-
-float minB = 0.3;
+float minS = 0.0;
+float maxS = 1.0;
+float minB = 0.6;
 float maxB = 1.0;
-float alpha = 0.04;
+
+float alpha = 0.5;
+
 float transStart = 0.35;
 float transWidth = 0.01;
 float transStart2 = 0.45;
 float transWidth2 = 0.01;
 
-float radTransStart = 0.18;
-float radTransWidth = 0.15;
+float[] bandStart = { 0.3 , 0.35 , 0.4 , 0.5 , 0.55 , 0.6 , 0.7 , 0.75 , 0.8 , 0.9 };
+float bandWidth = 0.01;
+
+float radTransStart = 0.23;
+float radTransWidth = 0.0;
 
 float ah = 0.02;
+float as = 0.055;
 float ab = 0.055;
-float af = 0.014;
-float ag = 1;
+float af = 0.008;
+float ag = 0.8;
 
 float th = 0.060;
+float ts = 0.030;
 float tb = 0.010;
 float tf = 0.005;
 float tc = 0.003;
-float tA = 0.4;
+float tA = 0.3;
 
 int numSpokes = 12;
 float ang;
@@ -108,12 +116,16 @@ void draw() {
       float y2 = py[x+y*width/2];
 
       float f = noise( ag*af*(30*xRes + x2), ag*af*(30*yRes + y2), tf*t ) * pf[x+y*width/2] ;
-      color c;
-      if ( f > transStart && f < transEnd || f > transStart2 && f < transEnd2 ) {
-        c = lerpColor( P[x+y*width/2], color(255, 255, 255), alpha );
-        pa[x+y*width/2] = 0;
-      } else {
-        if ( pa[x+y*width/2] < 20 ) {
+      color c = color( 0 , 0 , 0 );
+      boolean pixelDone = false;
+      for( int i = 0 ; i < bandStart.length ; i++ ) {
+        if( f > bandStart[i] && f < bandStart[i] + bandWidth ) {
+          pixelDone = true;
+          c = lerpColor( P[x+y*width/2], color(255, 255, 255), alpha );
+        }
+      }
+      if ( !pixelDone ) {
+        if ( pa[x+y*width/2] < 80 ) {
           c = lerpColor( P[x+y*width/2], color(0, 0, 0), alpha );
           pa[x+y*width/2]++;
         } else { 
@@ -140,33 +152,38 @@ void draw() {
   float minAng = TWO_PI * (float(minute())+float(second())/60)/60;
   float hourAng = TWO_PI * (float(hour()%12)+float(minute())/60)/12;
   translate( 0.5*xRes, 0.5*yRes );
-  stroke( 255, 255, 255, 128 );
+  stroke( 255, 255, 255, 255 );
+  noFill();
   fill(0);
-
+  float h = (frameCount*tc*tA + centerH + widthH*(-0.5+noise( 0.1*th*t ) ) )%1;
+  color c = hsbColor( h*360, 0.5, 0.5) ;
   
-  strokeWeight(1.5);
+  strokeWeight(2.0);
   float cr = 4;
-
+  //fill( red(c), green(c), blue(c), 255 );
   
   pushMatrix();
   rotate( PI+minAng );
   rect( -0.5*minuteWidth*yRes, -backEnd*yRes, minuteWidth*yRes, minuteLength*yRes, cr, cr, cr, cr );
   popMatrix();
-
+  h = (frameCount*tc*tA + centerH + widthH*(-0.5+noise( -0.1*th*t ) ) )%1;
+  c = hsbColor( h*360, 0.5, 0.5) ;
+  //fill( red(c), green(c), blue(c), 196 );
   pushMatrix();
   rotate( PI+hourAng );
   rect( -0.5*hourWidth*yRes, -backEnd*yRes, hourWidth*yRes, hourLength*yRes, cr, cr, cr, cr );
   popMatrix();
+  //ellipse( 0 , 0 , 0.5*backEnd*yRes , 0.5*backEnd*yRes );
   noStroke();
 
 
-  if ( frameCount%50 == 0 ) {
+  if ( frameCount%25 == 0 ) {
     println(frameRate);
   }
 }
 
 void mouseClicked() { 
-  exit();
+  noiseSeed( millis() );
 }
 
 void mouseMoved() {
