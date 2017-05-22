@@ -6,14 +6,14 @@ float maxS = 1.0;
 float minB = 0.6;
 float maxB = 1.0;
 
-float alpha = 0.5;
+float alpha = 0.2;
 
 float transStart = 0.35;
 float transWidth = 0.01;
 float transStart2 = 0.45;
 float transWidth2 = 0.01;
 
-float[] bandStart = { 0.3 , 0.35 , 0.4 , 0.5 , 0.55 , 0.6 , 0.7 , 0.75 , 0.8 , 0.9 };
+float[] bandStart = { 0.30 , 0.33 , 0.36 , 0.50 , 0.53 , 0.56 , 0.70 , 0.73 , 0.76 , 0.90 , 0.93 , 0.96 };
 float bandWidth = 0.01;
 
 float radTransStart = 0.23;
@@ -154,11 +154,11 @@ void draw() {
   translate( 0.5*xRes, 0.5*yRes );
   stroke( 255, 255, 255, 255 );
   noFill();
-  fill(0);
+  fill(0,0,0,128);
   float h = (frameCount*tc*tA + centerH + widthH*(-0.5+noise( 0.1*th*t ) ) )%1;
   color c = hsbColor( h*360, 0.5, 0.5) ;
   
-  strokeWeight(2.0);
+  strokeWeight(yRes*0.004);
   float cr = 4;
   //fill( red(c), green(c), blue(c), 255 );
   
