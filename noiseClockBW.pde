@@ -14,7 +14,7 @@ float transStart2 = 0.45;
 float transWidth2 = 0.01;
 
 float[] bandStart = { 0.30 , 0.33 , 0.36 , 0.50 , 0.53 , 0.56 , 0.70 , 0.73 , 0.76 , 0.90 , 0.93 , 0.96 };
-float bandWidth = 0.01;
+float bandWidth = 0.008;
 
 float radTransStart = 0.23;
 float radTransWidth = 0.0;
@@ -22,7 +22,7 @@ float radTransWidth = 0.0;
 float ah = 0.02;
 float as = 0.055;
 float ab = 0.055;
-float af = 0.008;
+float af = 0.012;
 float ag = 0.8;
 
 float th = 0.060;
@@ -30,7 +30,7 @@ float ts = 0.030;
 float tb = 0.010;
 float tf = 0.005;
 float tc = 0.003;
-float tA = 0.3;
+float tA = 0.2;
 
 int numSpokes = 12;
 float ang;
