@@ -52,6 +52,10 @@ float secondWidth = 0.01;
 float secondLength = 0.57;
 float backEnd = 0.04;
 
+int pressTime = 0;
+int pressTimeout = 4000;
+boolean mPressed = false;
+
 int startTime;
 int startSeconds;
 
@@ -180,6 +184,13 @@ void draw() {
   if ( frameCount%25 == 0 ) {
     println(frameRate);
   }
+  
+  if( mPressed ) {
+    if( pressTime + pressTimeout < millis() ) {
+      println( pressTime , pressTimeout , millis() );
+      exit();
+    }
+  }
 }
 
 void mouseClicked() { 
@@ -189,6 +200,15 @@ void mouseClicked() {
 void mouseMoved() {
 }
 void mouseDragged() {
+}
+
+void mousePressed() {
+  pressTime = millis();
+  mPressed = true;
+}
+
+void mouseReleased() {
+  mPressed = false;
 }
 
 color hsbColor( float h, float s, float b ) {
