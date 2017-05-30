@@ -6,7 +6,7 @@ float maxS = 1.0;
 float minB = 0.6;
 float maxB = 1.0;
 
-float alpha = 0.2;
+float alpha = 0.1;
 
 float transStart = 0.35;
 float transWidth = 0.01;
@@ -30,7 +30,7 @@ float ts = 0.030;
 float tb = 0.010;
 float tf = 0.005;
 float tc = 0.003;
-float tA = 0.2;
+float tA = 0.4;
 
 int numSpokes = 12;
 float ang;
