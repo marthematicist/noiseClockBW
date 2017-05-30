@@ -6,7 +6,7 @@ float maxS = 1.0;
 float minB = 0.6;
 float maxB = 1.0;
 
-float alpha = 0.1;
+float alpha = 0.5;
 
 float transStart = 0.35;
 float transWidth = 0.01;
@@ -41,6 +41,22 @@ float[] py;
 float[] pf;
 int[] pa;
 
+int numPixels = 0;
+float posX[];
+float posY[];
+int pixelX[];
+int pixelY[];
+float val0[];
+float val1[];
+float val2[];
+
+int numSteps = 20;
+int stepCounter = 0;
+int pixPerStep;
+int pixelCounter = 0;
+float dt = 0.1;
+float t = 0;
+
 color[] P;
 
 float cr = 4;
@@ -51,6 +67,7 @@ float minuteLength = 0.25;
 float secondWidth = 0.01;
 float secondLength = 0.57;
 float backEnd = 0.04;
+
 
 int pressTime = 0;
 int pressTimeout = 4000;
@@ -70,23 +87,29 @@ void setup() {
   background(0);
   ang = 2*PI/float(numSpokes);
 
-  startTime = millis();
-  startSeconds = second();
-  println(startSeconds);
-
-  P = new color[(width/2)*(height/2)];
-  for ( int x = 0; x < width/2; x++ ) {
-    for ( int y = 0; y < height/2; y++ ) {
-      P[x+y*width/2] = color(0, 0, 0);
+  for( int x = 0 ; x < width/2 ; x++ ) {
+    for( int y = 0 ; y <= x && y < height/2 ; y++ ) {
+      numPixels++;
     }
   }
-
-  px = new float[(width/2)*(height/2)];
-  py = new float[(width/2)*(height/2)];
-  pf = new float[(width/2)*(height/2)];
-  pa = new int[(width/2)*(height/2)];
-  for ( int x = 0; x < width/2; x++ ) {
-    for ( int y = 0; y < height/2; y++ ) {
+  pixPerStep = numPixels / numSteps;
+  println( numPixels );
+  posX = new float[numPixels];
+  posY = new float[numPixels];
+  pixelX = new int[numPixels];
+  pixelY = new int[numPixels];
+  val0 = new float[numPixels];
+  val1 = new float[numPixels];
+  val2 = new float[numPixels];
+  pf = new float[numPixels];
+  pa = new int[numPixels];
+  P = new color[(width/2)*(height/2)];
+  int indexCounter = 0;
+  for( int x = 0 ; x < width/2 ; x++ ) {
+    for( int y = 0 ; y <= x && y < height/2 ; y++ ) {
+      pixelX[indexCounter] = x;
+      pixelY[indexCounter] = y;
+      
       float x2 = float(x) + 0.5;
       float y2 = float(y) + 0.5;
       PVector v = new PVector( x2, y2 );
@@ -95,48 +118,55 @@ void setup() {
         a = ang - a;
       }
       float r = v.mag();
-      px[x+y*width/2] = r*cos(a);
-      py[x+y*width/2] = r*sin(a);
+      posX[indexCounter] = r*cos(a);
+      posY[indexCounter] = r*sin(a);
       if ( r < radTransStart*yRes ) {
-        pf[x+y*width/2] = 0;
+        pf[indexCounter] = 0;
       } else if  (r >= (radTransStart)*yRes && r < (radTransStart+radTransWidth)*yRes ) {
-        pf[x+y*width/2] = (r-(radTransStart*yRes))/(radTransWidth*yRes);
+        pf[indexCounter] = (r-(radTransStart*yRes))/(radTransWidth*yRes);
       } else {
-        pf[x+y*width/2] = 1;
+        pf[indexCounter] = 1;
       }
-      pa[x+y*width/2] = 0;
+      pa[indexCounter] = 0;
+      P[indexCounter] = color(0, 0, 0);
+      indexCounter++;
     }
   }
+  
+  for( int i = 0 ; i < numPixels ; i++ ) {
+    float t0 = t;
+    float t1 = t + dt;
+    val0[i] = noise( ag*af*posX[i] , ag*af*posY[i] , t0 )*pf[i];
+    val1[i] = noise( ag*af*posX[i] , ag*af*posY[i] , t1 )*pf[i];
+  }
+  startTime = millis();
+  startSeconds = second();
+
+  
 }
 
 void draw() {
-  float t = tA*float(frameCount);
   loadPixels();
   float transEnd = transStart + transWidth;
   float transEnd2 = transStart2 + transWidth2;
-  for ( int x = 0; x < width/2; x++ ) {
-    for ( int y = 0; y<=x && y<height/2; y++ ) {
-      float x2 = px[x+y*width/2];
-      float y2 = py[x+y*width/2];
-
-      float f = noise( ag*af*(30*xRes + x2), ag*af*(30*yRes + y2), tf*t ) * pf[x+y*width/2] ;
-      color c = color( 0 , 0 , 0 );
-      boolean pixelDone = false;
-      for( int i = 0 ; i < bandStart.length ; i++ ) {
-        if( f > bandStart[i] && f < bandStart[i] + bandWidth ) {
-          pixelDone = true;
-          c = lerpColor( P[x+y*width/2], color(255, 255, 255), alpha );
-        }
-      }
-      if ( !pixelDone ) {
-        if ( pa[x+y*width/2] < 80 ) {
-          c = lerpColor( P[x+y*width/2], color(0, 0, 0), alpha );
-          pa[x+y*width/2]++;
+  for ( int i = 0; i < numPixels; i++ ) {
+      int x = pixelX[i];
+      int y = pixelY[i];
+      
+      float f = lerp( val0[i] , val1[i] , float(stepCounter)/float(numSteps) ) ;
+      color c;
+      if ( f > transStart && f < transEnd || f > transStart2 && f < transEnd2 ) {
+        c = lerpColor( P[i], color(255, 255, 255), alpha );
+        pa[i] = 0;
+      } else {
+        if ( pa[i] < 20 ) {
+          c = lerpColor( P[i], color(0, 0, 0), alpha );
+          pa[i]++;
         } else { 
           c = color( 0, 0, 0 );
         }
       }
-      P[x+y*width/2] = c;
+      P[i] = c;
       pixels[ (width/2+x) + (height/2+y)*width ] = c;
       pixels[ (width/2+x) + (height/2-y)*width ] = c;
       pixels[ (width/2-x) + (height/2+y)*width ] = c;
@@ -147,9 +177,21 @@ void draw() {
         pixels[ (width/2-y) + (height/2+x)*width ] = c;
         pixels[ (width/2-y) + (height/2-x)*width ] = c;
       }
-    }
   }
   updatePixels();
+  for( int i = stepCounter*pixPerStep ; i <  (stepCounter+1)*pixPerStep && i < numPixels ; i++ ) {
+    float t2 = t + dt;
+    val2[i] = noise( ag*af*posX[i] , ag*af*posY[i] , t2 )*pf[i];
+  }
+  stepCounter++;
+  if( stepCounter > numSteps ) { 
+    stepCounter = 0; 
+    t += dt;
+    for( int i = 0 ; i < numPixels ; i++ ) {
+      val0[i] = val1[i];
+      val1[i] = val2[i];
+    }
+  }
 
   // clock stuff
   float secAng = TWO_PI * float(second())/60;
